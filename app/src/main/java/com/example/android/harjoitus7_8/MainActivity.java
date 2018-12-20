@@ -190,6 +190,9 @@ public class MainActivity extends AppCompatActivity {
             case R.id.activity_chart_menu:
                 startActivity(new Intent(this, ChartActivity.class));
                 return true;
+            case R.id.weekly_chart_menu:
+                startActivity(new Intent(this, WeeklyChartActivity.class));
+                return true;
             case R.id.sign_out_menu:
                 AuthUI.getInstance().signOut(this);
                 return true;

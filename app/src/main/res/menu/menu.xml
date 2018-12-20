@@ -10,6 +10,11 @@
         android:id="@+id/activity_chart_menu"
         android:title="@string/activity_chart"
         app:showAsAction="never"/>
+
+    <item
+        android:id="@+id/weekly_chart_menu"
+        android:title="@string/weekly_chart"
+        app:showAsAction="never"/>
     <item
         android:id="@+id/sign_out_menu"
         android:title="@string/sign_out"

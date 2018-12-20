@@ -11,6 +11,7 @@
     <string name="error_entry">Error in input values!</string>
     <string name="sign_out">Sign out</string>
     <string name="activity_chart">Activity chart</string>
+    <string name="weekly_chart">Weekly chart</string>
     <string name="training_entries">Training entries</string>
 
 </resources>

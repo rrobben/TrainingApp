@@ -13,7 +13,6 @@ import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.firebase.ui.auth.AuthUI;
-import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.github.mikephil.charting.charts.CombinedChart;
 import com.github.mikephil.charting.components.AxisBase;
 import com.github.mikephil.charting.components.Legend;
@@ -40,21 +39,19 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Iterator;
 
 import static com.example.android.harjoitus7_8.MainActivity.RC_SIGN_IN;
-import static com.example.android.harjoitus7_8.R.id.activity_chart;
 
-public class ChartActivity extends AppCompatActivity {
-
+public class WeeklyChartActivity extends AppCompatActivity {
     private CombinedChart chart;
-    private final int count = 12;
 
     public static final String ANONYMOUS = "anonymous";
     private String mUid;
 
     private FirebaseDatabase mFirebaseDatabase;
     private DatabaseReference mTrainingDatabaseReference;
-    private ChildEventListener mChildEventListener;
     private FirebaseAuth mFirebaseAuth;
     private FirebaseAuth.AuthStateListener mAuthStateListener;
 
@@ -64,9 +61,9 @@ public class ChartActivity extends AppCompatActivity {
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_chart);
+        setContentView(R.layout.activity_weekly_chart);
 
-        setTitle(R.string.activity_chart);
+        setTitle(R.string.weekly_chart);
 
         mUid = ANONYMOUS;
 
@@ -119,58 +116,75 @@ public class ChartActivity extends AppCompatActivity {
         YAxis rightAxis = chart.getAxisRight();
         rightAxis.setDrawGridLines(false);
         rightAxis.setAxisMinimum(0f); // this replaces setStartAtZero(true)
-        rightAxis.setAxisMaximum(10f);
+        rightAxis.setGranularity(0.5f);
 
         YAxis leftAxis = chart.getAxisLeft();
         leftAxis.setDrawGridLines(false);
         leftAxis.setAxisMinimum(0f); // this replaces setStartAtZero(true)
-        //leftAxis.setAxisMaximum(2000f);
 
         XAxis xAxis = chart.getXAxis();
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
-        //xAxis.setAxisMinimum(f);
-        xAxis.setGranularity(86400000f);
-        //xAxis.setDrawGridLines(false);
-        xAxis.setValueFormatter(new IAxisValueFormatter() {
-            @Override
-            public String getFormattedValue(float value, AxisBase axis) {
-                Calendar calendar = Calendar.getInstance();
-                calendar.setTimeInMillis((long)value);
-                SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM");
-                return dateFormat.format(calendar.getTime());
-            }
-        });
+        xAxis.setGranularity(1f);
+        xAxis.setDrawGridLines(false);
 
         CombinedData data = new CombinedData();
 
         data.setData(generateLineData(dataSnapshot));
         data.setData(generateBarData(dataSnapshot));
-        //data.setValueTypeface(tfLight);
 
         leftAxis.setAxisMaximum(data.getYMax() + 100f);
-        //xAxis.setAxisMinimum(1545256800000f);
-        //xAxis.setAxisMaximum(1545516000000f);
-        xAxis.setAxisMinimum(data.getXMin() - 46400000f);
-        xAxis.setAxisMaximum(data.getXMax() + 46400000f);
+        rightAxis.setAxisMaximum(data.getYMax(rightAxis.getAxisDependency()) + 0.5f);
+        xAxis.setAxisMinimum(data.getXMin() - 0.5f);
+        xAxis.setAxisMaximum(data.getXMax() + 0.5f);
 
         chart.setData(data);
         chart.invalidate();
     }
 
     private LineData generateLineData(DataSnapshot dataSnapshot) {
-        LineData d = new LineData();
         ArrayList<Entry> entries = new ArrayList<>();
+        ArrayList<Entry> entries2 = new ArrayList<>();
+        HashMap<Integer, Integer> map = new HashMap<>();
+        HashMap<Integer, Integer> results = new HashMap<>();
 
         for (DataSnapshot entrySnapshot: dataSnapshot.getChildren()) {
             TrainingEntry entry = entrySnapshot.getValue(TrainingEntry.class);
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTimeInMillis(entry.getTime());
+            SimpleDateFormat df = new SimpleDateFormat("w");
+            int week = calendar.get(Calendar.WEEK_OF_YEAR);
 
-            entries.add(new Entry(entry.getTime() + 46400000f, entry.getRpe() * entry.getDuration()));
+            if (((HashMap) map).containsKey(week)) {
+                map.put(week, entry.getRpe() * entry.getDuration() + map.get(week));
+            } else {
+                map.put(week, entry.getRpe() * entry.getDuration());
+            }
         }
 
-        //for (int index = 0; index < count; index++)
-        //    mEntries.add(new Entry("20.12.2018",10));
+        for (int key: map.keySet()) {
+            int sum = 0;
 
-        LineDataSet set = new LineDataSet(entries, "sRPE");
+            for (int i = 0; i < 4; i++) {
+                if (map.containsKey(key - i)) {
+                    sum += map.get(key - i);
+                }
+            }
+
+            int average = Math.round(sum / 4);
+            results.put(key, average);
+        }
+
+        for (int key: results.keySet()) {
+            entries.add(new BarEntry(key, results.get(key)));
+        }
+
+        for (int key: results.keySet()) {
+            float value = Math.round((map.get(key) / results.get(key)) * 100) / 100;
+            entries2.add(new BarEntry(key, value));
+            Log.d("INJURY", String.valueOf(value));
+        }
+
+        LineDataSet set = new LineDataSet(entries, "4 wk average");
         set.setColor(Color.rgb(240, 238, 70));
         set.setLineWidth(2.5f);
         set.setCircleColor(Color.rgb(240, 238, 70));
@@ -182,49 +196,56 @@ public class ChartActivity extends AppCompatActivity {
         set.setValueTextColor(Color.rgb(240, 238, 70));
 
         set.setAxisDependency(YAxis.AxisDependency.LEFT);
-        d.addDataSet(set);
+
+
+        LineDataSet set2 = new LineDataSet(entries2, "Injury forecast");
+        set2.setColor(Color.rgb(240, 23, 7));
+        set2.setLineWidth(2.5f);
+        set2.setCircleColor(Color.rgb(240, 23, 7));
+        set2.setCircleRadius(5f);
+        set2.setFillColor(Color.rgb(240, 23, 7));
+        set2.setMode(LineDataSet.Mode.LINEAR);
+        set2.setDrawValues(true);
+        set2.setValueTextSize(10f);
+        set2.setValueTextColor(Color.rgb(240, 23, 7));
+        set2.setAxisDependency(YAxis.AxisDependency.RIGHT);
+
+        LineData d = new LineData(set, set2);
 
         return d;
     }
 
     private BarData generateBarData(DataSnapshot dataSnapshot) {
         ArrayList<BarEntry> entries = new ArrayList<>();
+        HashMap<Integer, Integer> map = new HashMap<>();
 
         for (DataSnapshot entrySnapshot: dataSnapshot.getChildren()) {
             TrainingEntry entry = entrySnapshot.getValue(TrainingEntry.class);
-            entries.add(new BarEntry(entry.getTime() + 46400000f, entry.getSharpness()));
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTimeInMillis(entry.getTime());
+            int week = calendar.get(Calendar.WEEK_OF_YEAR);
+
+            if (((HashMap) map).containsKey(week)) {
+                map.put(week, entry.getRpe() * entry.getDuration() + map.get(week));
+            } else {
+                map.put(week, entry.getRpe() * entry.getDuration());
+            }
         }
 
-       // for (int index = 0; index < count; index++) {
-        //    entries1.add(new BarEntry(0,25));
+        for (int key: map.keySet()) {
+            entries.add(new BarEntry(key, map.get(key)));
+        }
 
-            // stacked
-       //     entries2.add(new BarEntry(0, new float[]{12, 13}));
-       // }
-
-        BarDataSet set1 = new BarDataSet(entries, "Sharpness");
+        BarDataSet set1 = new BarDataSet(entries, "sRPE");
         set1.setColor(Color.rgb(60, 220, 78));
         set1.setValueTextColor(Color.rgb(60, 220, 78));
         set1.setValueTextSize(10f);
-        set1.setAxisDependency(YAxis.AxisDependency.RIGHT);
+        set1.setAxisDependency(YAxis.AxisDependency.LEFT);
 
-       // BarDataSet set2 = new BarDataSet(entries2, "");
-       // set2.setStackLabels(new String[]{"Stack 1", "Stack 2"});
-       // set2.setColors(Color.rgb(61, 165, 255), Color.rgb(23, 197, 255));
-       // set2.setValueTextColor(Color.rgb(61, 165, 255));
-       // set2.setValueTextSize(10f);
-       // set2.setAxisDependency(YAxis.AxisDependency.LEFT);
-
-        float groupSpace = 0.06f;
-        float barSpace = 0.02f; // x2 dataset
-        float barWidth = 46400000f; // x2 dataset
-        // (0.45 + 0.02) * 2 + 0.06 = 1.00 -> interval per "group"
+        float barWidth = 0.5f; // x2 dataset
 
         BarData d = new BarData(set1);
         d.setBarWidth(barWidth);
-
-        // make this BarData object grouped
-       // d.groupBars(0, groupSpace, barSpace); // start at x = 0
 
         return d;
     }
@@ -241,8 +262,8 @@ public class ChartActivity extends AppCompatActivity {
             case R.id.main_activity_menu:
                 startActivity(new Intent(this, MainActivity.class));
                 return true;
-            case R.id.weekly_chart_menu:
-                startActivity(new Intent(this, WeeklyChartActivity.class));
+            case R.id.activity_chart_menu:
+                startActivity(new Intent(this, ChartActivity.class));
                 return true;
             case R.id.sign_out_menu:
                 AuthUI.getInstance().signOut(this);
@@ -291,7 +312,7 @@ public class ChartActivity extends AppCompatActivity {
             query.addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
-                   drawChart(dataSnapshot);
+                    drawChart(dataSnapshot);
                 }
 
                 @Override
