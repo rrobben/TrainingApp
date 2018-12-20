@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.example.android.harjoitus7_8.MainActivity">
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <EditText
+            android:id="@+id/et_sport"
+            android:layout_width="227dp"
+            android:layout_height="wrap_content"
+            android:hint="@string/sport"
+            android:inputType="text" />
+
+        <EditText
+            android:id="@+id/et_date"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="@string/date"
+            android:inputType="date" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <EditText
+            android:id="@+id/et_duration"
+            android:layout_width="145dp"
+            android:layout_height="wrap_content"
+            android:hint="@string/duration_h"
+            android:inputType="numberDecimal"
+            android:maxLength="3" />
+
+        <EditText
+            android:id="@+id/et_sharpness"
+            android:layout_width="126dp"
+            android:layout_height="wrap_content"
+            android:hint="@string/sharpness"
+            android:inputType="number"
+            android:maxLength="2" />
+
+        <EditText
+            android:id="@+id/et_rpe"
+            android:layout_width="198dp"
+            android:layout_height="wrap_content"
+            android:hint="@string/rpe"
+            android:inputType="number"
+            android:maxLength="2" />
+
+
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/add_entry_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginTop="8dp"
+        android:onClick="addNewEntry"
+        android:text="@string/add_entry" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:layout_width="77dp"
+            android:layout_height="wrap_content"
+            android:text="@string/date" />
+
+        <TextView
+            android:layout_width="73dp"
+            android:layout_height="wrap_content"
+            android:text="@string/sport" />
+
+        <TextView
+            android:layout_width="66dp"
+            android:layout_height="wrap_content"
+            android:text="@string/duration" />
+
+        <TextView
+            android:layout_width="44dp"
+            android:layout_height="wrap_content"
+            android:text="@string/sharpness" />
+
+        <TextView
+            android:layout_width="71dp"
+            android:layout_height="wrap_content"
+            android:text="@string/rpe" />
+
+    </LinearLayout>
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/all_entries_list_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+</LinearLayout>

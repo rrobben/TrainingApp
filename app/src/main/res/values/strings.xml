@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">Harjoitus_7_8</string>
+    <string name="date">Date</string>
+    <string name="duration_h">Duration (h)</string>
+    <string name="duration">Duration</string>
+    <string name="add_entry">Add Entry</string>
+    <string name="rpe">RPE</string>
+    <string name="sharpness">CS</string>
+    <string name="sport">Sport</string>
+    <string name="entry_created">Entry created!</string>
+    <string name="error_entry">Error in input values!</string>
+    <string name="sign_out">Sign out</string>
+    <string name="activity_chart">Activity chart</string>
+    <string name="training_entries">Training entries</string>
+
+</resources>

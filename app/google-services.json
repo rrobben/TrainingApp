@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "1043743794326",
+    "firebase_url": "https://harjoitus7-8.firebaseio.com",
+    "project_id": "harjoitus7-8",
+    "storage_bucket": "harjoitus7-8.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1043743794326:android:9c7f072002540afc",
+        "android_client_info": {
+          "package_name": "com.example.android.harjoitus7_8"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1043743794326-reuo8bh5464lu0ggth3h436aah56hoko.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.android.harjoitus7_8",
+            "certificate_hash": "2bc99003b028a299309c64bc3ce4770e399ad72d"
+          }
+        },
+        {
+          "client_id": "1043743794326-bki8oopmg7qpjm24mf9m7k0dqcjflqge.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB-MguKUAJMdwUlY-NyV5LWDf8KArqdv2g"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1043743794326-bki8oopmg7qpjm24mf9m7k0dqcjflqge.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
