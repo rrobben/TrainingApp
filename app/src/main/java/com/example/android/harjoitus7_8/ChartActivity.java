@@ -47,7 +47,8 @@ import static com.example.android.harjoitus7_8.R.id.activity_chart;
 public class ChartActivity extends AppCompatActivity {
 
     private CombinedChart chart;
-    private final int count = 12;
+
+    public static final int DAY_IN_MILLIS = 86400000;
 
     public static final String ANONYMOUS = "anonymous";
     private String mUid;
@@ -118,24 +119,22 @@ public class ChartActivity extends AppCompatActivity {
 
         YAxis rightAxis = chart.getAxisRight();
         rightAxis.setDrawGridLines(false);
-        rightAxis.setAxisMinimum(0f); // this replaces setStartAtZero(true)
+        rightAxis.setAxisMinimum(0f);
         rightAxis.setAxisMaximum(10f);
 
         YAxis leftAxis = chart.getAxisLeft();
         leftAxis.setDrawGridLines(false);
-        leftAxis.setAxisMinimum(0f); // this replaces setStartAtZero(true)
-        //leftAxis.setAxisMaximum(2000f);
+        leftAxis.setAxisMinimum(0f);
 
         XAxis xAxis = chart.getXAxis();
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
-        //xAxis.setAxisMinimum(f);
-        xAxis.setGranularity(86400000f);
-        //xAxis.setDrawGridLines(false);
+        xAxis.setGranularity(1f);
+        xAxis.setDrawGridLines(false);
         xAxis.setValueFormatter(new IAxisValueFormatter() {
             @Override
             public String getFormattedValue(float value, AxisBase axis) {
                 Calendar calendar = Calendar.getInstance();
-                calendar.setTimeInMillis((long)value);
+                calendar.setTimeInMillis((long)value * DAY_IN_MILLIS);
                 SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM");
                 return dateFormat.format(calendar.getTime());
             }
@@ -145,13 +144,10 @@ public class ChartActivity extends AppCompatActivity {
 
         data.setData(generateLineData(dataSnapshot));
         data.setData(generateBarData(dataSnapshot));
-        //data.setValueTypeface(tfLight);
 
         leftAxis.setAxisMaximum(data.getYMax() + 100f);
-        //xAxis.setAxisMinimum(1545256800000f);
-        //xAxis.setAxisMaximum(1545516000000f);
-        xAxis.setAxisMinimum(data.getXMin() - 46400000f);
-        xAxis.setAxisMaximum(data.getXMax() + 46400000f);
+        xAxis.setAxisMinimum(data.getXMin() - 1f);
+        xAxis.setAxisMaximum(data.getXMax() + 1f);
 
         chart.setData(data);
         chart.invalidate();
@@ -164,11 +160,8 @@ public class ChartActivity extends AppCompatActivity {
         for (DataSnapshot entrySnapshot: dataSnapshot.getChildren()) {
             TrainingEntry entry = entrySnapshot.getValue(TrainingEntry.class);
 
-            entries.add(new Entry(entry.getTime() + 46400000f, entry.getRpe() * entry.getDuration()));
+            entries.add(new Entry((float) entry.getTime() / (float) DAY_IN_MILLIS, entry.getRpe() * entry.getDuration()));
         }
-
-        //for (int index = 0; index < count; index++)
-        //    mEntries.add(new Entry("20.12.2018",10));
 
         LineDataSet set = new LineDataSet(entries, "sRPE");
         set.setColor(Color.rgb(240, 238, 70));
@@ -192,15 +185,8 @@ public class ChartActivity extends AppCompatActivity {
 
         for (DataSnapshot entrySnapshot: dataSnapshot.getChildren()) {
             TrainingEntry entry = entrySnapshot.getValue(TrainingEntry.class);
-            entries.add(new BarEntry(entry.getTime() + 46400000f, entry.getSharpness()));
+            entries.add(new BarEntry((float) entry.getTime() / (float) DAY_IN_MILLIS, entry.getSharpness()));
         }
-
-       // for (int index = 0; index < count; index++) {
-        //    entries1.add(new BarEntry(0,25));
-
-            // stacked
-       //     entries2.add(new BarEntry(0, new float[]{12, 13}));
-       // }
 
         BarDataSet set1 = new BarDataSet(entries, "Sharpness");
         set1.setColor(Color.rgb(60, 220, 78));
@@ -208,23 +194,9 @@ public class ChartActivity extends AppCompatActivity {
         set1.setValueTextSize(10f);
         set1.setAxisDependency(YAxis.AxisDependency.RIGHT);
 
-       // BarDataSet set2 = new BarDataSet(entries2, "");
-       // set2.setStackLabels(new String[]{"Stack 1", "Stack 2"});
-       // set2.setColors(Color.rgb(61, 165, 255), Color.rgb(23, 197, 255));
-       // set2.setValueTextColor(Color.rgb(61, 165, 255));
-       // set2.setValueTextSize(10f);
-       // set2.setAxisDependency(YAxis.AxisDependency.LEFT);
-
-        float groupSpace = 0.06f;
-        float barSpace = 0.02f; // x2 dataset
-        float barWidth = 46400000f; // x2 dataset
-        // (0.45 + 0.02) * 2 + 0.06 = 1.00 -> interval per "group"
-
+        float barWidth = 0.5f;
         BarData d = new BarData(set1);
         d.setBarWidth(barWidth);
-
-        // make this BarData object grouped
-       // d.groupBars(0, groupSpace, barSpace); // start at x = 0
 
         return d;
     }

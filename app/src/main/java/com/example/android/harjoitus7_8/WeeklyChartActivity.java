@@ -26,6 +26,8 @@ import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.formatter.IAxisValueFormatter;
+import com.github.mikephil.charting.formatter.IValueFormatter;
+import com.github.mikephil.charting.utils.ViewPortHandler;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
@@ -40,7 +42,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
-import java.util.Iterator;
 
 import static com.example.android.harjoitus7_8.MainActivity.RC_SIGN_IN;
 
@@ -115,17 +116,23 @@ public class WeeklyChartActivity extends AppCompatActivity {
 
         YAxis rightAxis = chart.getAxisRight();
         rightAxis.setDrawGridLines(false);
-        rightAxis.setAxisMinimum(0f); // this replaces setStartAtZero(true)
-        rightAxis.setGranularity(0.5f);
+        rightAxis.setAxisMinimum(0f);
 
         YAxis leftAxis = chart.getAxisLeft();
         leftAxis.setDrawGridLines(false);
-        leftAxis.setAxisMinimum(0f); // this replaces setStartAtZero(true)
+        leftAxis.setAxisMinimum(0f);
+
 
         XAxis xAxis = chart.getXAxis();
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
         xAxis.setGranularity(1f);
         xAxis.setDrawGridLines(false);
+        xAxis.setValueFormatter(new IAxisValueFormatter() {
+            @Override
+            public String getFormattedValue(float value, AxisBase axis) {
+                return ((int) value % 52 == 0 ? "52" : String.valueOf((int) value % 52));
+            }
+        });
 
         CombinedData data = new CombinedData();
 
@@ -146,15 +153,21 @@ public class WeeklyChartActivity extends AppCompatActivity {
         ArrayList<Entry> entries2 = new ArrayList<>();
         HashMap<Integer, Integer> map = new HashMap<>();
         HashMap<Integer, Integer> results = new HashMap<>();
+        int startingYear = 0;
 
         for (DataSnapshot entrySnapshot: dataSnapshot.getChildren()) {
             TrainingEntry entry = entrySnapshot.getValue(TrainingEntry.class);
             Calendar calendar = Calendar.getInstance();
             calendar.setTimeInMillis(entry.getTime());
-            SimpleDateFormat df = new SimpleDateFormat("w");
-            int week = calendar.get(Calendar.WEEK_OF_YEAR);
+            int year = calendar.get(Calendar.YEAR);
 
-            if (((HashMap) map).containsKey(week)) {
+            if (startingYear == 0) {
+                startingYear = year;
+            }
+
+            int week = (year - startingYear) * 52 + calendar.get(Calendar.WEEK_OF_YEAR);
+
+            if (map.containsKey(week)) {
                 map.put(week, entry.getRpe() * entry.getDuration() + map.get(week));
             } else {
                 map.put(week, entry.getRpe() * entry.getDuration());
@@ -175,13 +188,11 @@ public class WeeklyChartActivity extends AppCompatActivity {
         }
 
         for (int key: results.keySet()) {
-            entries.add(new BarEntry(key, results.get(key)));
+            entries.add(new Entry(key, results.get(key)));
         }
 
         for (int key: results.keySet()) {
-            float value = Math.round((map.get(key) / results.get(key)) * 100) / 100;
-            entries2.add(new BarEntry(key, value));
-            Log.d("INJURY", String.valueOf(value));
+            entries2.add(new Entry(key, (float) map.get(key) / (float) results.get(key)));
         }
 
         LineDataSet set = new LineDataSet(entries, "4 wk average");
@@ -209,6 +220,12 @@ public class WeeklyChartActivity extends AppCompatActivity {
         set2.setValueTextSize(10f);
         set2.setValueTextColor(Color.rgb(240, 23, 7));
         set2.setAxisDependency(YAxis.AxisDependency.RIGHT);
+        set2.setValueFormatter(new IValueFormatter() {
+            @Override
+            public String getFormattedValue(float value, Entry entry, int dataSetIndex, ViewPortHandler viewPortHandler) {
+                return String.valueOf((float) Math.round(value * 100) / 100);
+            }
+        });
 
         LineData d = new LineData(set, set2);
 
@@ -218,14 +235,21 @@ public class WeeklyChartActivity extends AppCompatActivity {
     private BarData generateBarData(DataSnapshot dataSnapshot) {
         ArrayList<BarEntry> entries = new ArrayList<>();
         HashMap<Integer, Integer> map = new HashMap<>();
+        int startingYear = 0;
 
         for (DataSnapshot entrySnapshot: dataSnapshot.getChildren()) {
             TrainingEntry entry = entrySnapshot.getValue(TrainingEntry.class);
             Calendar calendar = Calendar.getInstance();
             calendar.setTimeInMillis(entry.getTime());
-            int week = calendar.get(Calendar.WEEK_OF_YEAR);
+            int year = calendar.get(Calendar.YEAR);
 
-            if (((HashMap) map).containsKey(week)) {
+            if (startingYear == 0) {
+                startingYear = year;
+            }
+
+            int week = (year - startingYear) * 52 + calendar.get(Calendar.WEEK_OF_YEAR);
+
+            if (map.containsKey(week)) {
                 map.put(week, entry.getRpe() * entry.getDuration() + map.get(week));
             } else {
                 map.put(week, entry.getRpe() * entry.getDuration());
